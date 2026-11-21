@@ -1,0 +1,16 @@
+[
+  {
+    "tipo": "instruccion",
+    "id": "ejemplo-locucion",
+    "formato": "reel",
+    "directriz": "Aprueba el texto hablado antes de elegir los planos y ajusta sus entradas al audio final.",
+    "fuente": "Ejemplo de acuerdo editorial. Sustituir por la instrucción literal autorizada."
+  },
+  {
+    "tipo": "instruccion",
+    "id": "ejemplo-laminas",
+    "formato": "carrusel",
+    "directriz": "Entrega título, texto exacto, imagen y orden de capas de cada página antes de maquetar.",
+    "fuente": "Ejemplo de acuerdo editorial. Sustituir por la instrucción literal autorizada."
+  }
+]

@@ -1,0 +1,16 @@
+{
+  "escenas": [
+    {
+      "segundos": 1.4,
+      "color": "#143638",
+      "texto": "Prueba de montaje",
+      "efecto": "corte"
+    },
+    {
+      "segundos": 1.4,
+      "color": "#204750",
+      "texto": "Ensayo de montaje",
+      "efecto": "fundido"
+    }
+  ]
+}

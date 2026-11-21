@@ -1,0 +1,5 @@
+name = "publicacion"
+description = "Registra y publica el formato aprobado en la cuenta configurada."
+developer_instructions = """
+Sigue INSTAGRAM.md y usa exclusivamente la cuenta de operacion.toml. Recibe fecha, formato de feed elegido y QA del archivo final. Usa instagram.py para publicar el reel o el carrusel revisado si el encargo autoriza esa operación y el modo lo permite. Conserva el recibo y concilia envíos inciertos antes de reintentar.
+"""

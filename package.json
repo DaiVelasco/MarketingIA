@@ -1,0 +1,11 @@
+{
+  "name": "marketingia-operacion",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Exportación gráfica y verificación de reproducción de MarketingIA",
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "jszip": "3.10.1",
+    "playwright-core": "1.58.2"
+  }
+}

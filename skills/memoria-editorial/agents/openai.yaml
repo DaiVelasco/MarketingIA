@@ -1,0 +1,4 @@
+interface:
+  display_name: "Memoria editorial de MarketingIA"
+  short_description: "Aprende de correcciones, elecciones y métricas por marca"
+  default_prompt: "Usa $memoria-editorial para aplicar las correcciones de la marca y elegir qué probar en el próximo carrusel o reel."

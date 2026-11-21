@@ -1,0 +1,16 @@
+# Completar una sola vez antes de la operación real.
+cuenta = "cuenta.demo"
+modo = "ensayo"  # ensayo o produccion
+zona = "America/Caracas"
+referencias = []  # Nombres de cuentas profesionales sin @
+objetivos = ["reservas", "ventas", "crecimiento"]
+# Hasta una publicación por fecha local. Las respuestas se gestionan independientemente.
+# Presupuesto de servicios creativos de pago autorizado por día.
+presupuesto_creativo = 0
+moneda = "USD"
+# El director usa ambos formatos en una campaña completa y elige una pieza de feed al día.
+formatos = ["reel", "carrusel"]
+# Las acciones autorizables son "publicar" (reel), "publicar-carrusel" y "responder".
+acciones_habilitadas = []
+# Directorio HTTPS de la marca donde Meta puede leer cada JPG como <sha256>.jpg.
+base_imagenes_https = ""

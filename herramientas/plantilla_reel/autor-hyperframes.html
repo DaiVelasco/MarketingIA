@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Detalle de cámara</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body, main { margin: 0; width: 1080px; height: 1920px; overflow: hidden; background: #17201e; }
+    main { position: relative; }
+    .layer, video { position: absolute; inset: 0; width: 1080px; height: 1920px; object-fit: cover; }
+    #mask { mask-size: 535px 480px; mask-position: 52% 53%; mask-repeat: no-repeat; mask-mode: luminance; opacity: 0; }
+    #zoom { transform-origin: 57% 45%; }
+  </style>
+  <script src="assets/gsap.min.js"></script>
+</head>
+<body>
+  <main data-composition-id="detalle" data-start="0" data-duration="DURACION" data-width="1080" data-height="1920" data-fps="30">
+    <div class="layer" id="capa"><video id="camara" class="clip" src="assets/camara.mp4" data-start="0" data-duration="DURACION" data-track-index="0" muted playsinline></video></div>
+    <div class="layer" id="mask"><video id="zoom" class="clip" src="assets/camara.mp4" data-start="0" data-duration="DURACION" data-track-index="1" muted playsinline></video></div>
+  </main>
+  <script>
+    const tl = gsap.timeline({paused: true});
+    tl.fromTo('#capa', {scale: 1.005, transformOrigin: '55% 48%'}, {scale: 1.075, duration: DURACION, ease: 'sine.inOut'}, 0);
+    tl.fromTo('#zoom', {scale: 1.10}, {scale: 1.13, duration: DURACION, ease: 'sine.inOut'}, 0);
+    tl.fromTo('#mask', {opacity: 0}, {opacity: 0.83, duration: 0.18, ease: 'sine.out'}, 0);
+    tl.to('#mask', {opacity: 0, duration: 0.23, ease: 'sine.in'}, 0.48);
+    for (let frame = 0; frame < 24; frame++) {
+      const mask = 'url("assets/papel-' + String(frame).padStart(3, '0') + '.png")';
+      tl.set('#mask', {maskImage: mask}, frame / 30);
+    }
+    window.__timelines = window.__timelines || {};
+    window.__timelines.detalle = tl;
+  </script>
+</body>
+</html>
