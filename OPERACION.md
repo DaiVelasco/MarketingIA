@@ -120,6 +120,35 @@ Para estudiar el ritmo en una maqueta, `python campana.py producir RUTA --format
 
 En la revisión de video comprueba inicio, mitad y cierre, duración real, lectura en móvil, sincronía de subtítulos, nivel de voz y ambiente, registro del logo y reproducción del archivo completo. Las fuentes comerciales y el siguiente paso del espectador deben coincidir con el brief.
 
+### Placa final de la cuenta
+
+Cuando la ficha de marca o la memoria indique un cierre de referencia, Biblioteca identifica el primer fotograma limpio de la placa, el último, la entrada del logo y del usuario, y el punto donde termina la voz. Cuenta los fotogramas decodificados desde cero. Un archivo puede comenzar con un PTS distinto de cero.
+
+Guion conserva el CTA propio y reserva el tramo de la placa al final del máster. Edición hace la transición desde el último plano de la pieza, coloca la placa aprobada y prepara la cola de sonido. La referencia utilizada para comparar la placa debe tener la misma cadencia que el máster. Guarda una copia privada de la placa con la identidad de la cuenta y otra en el expediente que recibirá Revisión.
+
+Si el referente incluye el plano anterior y su voz, exporta primero la placa limpia. En el ejemplo siguiente, la imagen 471 es la primera placa limpia y la imagen 548 es la última. Ajusta ambos índices tras revisar la referencia concreta. El comando conserva las imágenes sin sonido. Edición puede mezclar el ambiente del reel con una cola musical después de la última palabra.
+
+```powershell
+ffmpeg -n -i referencia.mp4 -map 0:v:0 -an -vf "trim=start_frame=471:end_frame=549,setpts=PTS-STARTPTS" -fps_mode passthrough -c:v libx264 -crf 0 -pix_fmt yuv420p edicion-03/placa-referencia.mp4
+```
+
+En este estilo de cierre, el último plano propio se aclara en tres o cuatro cuadros hasta llegar al fondo de la placa. La firma aparece primero y el identificador de la cuenta entra debajo. Reproduce el último cuadro para comprobar que ambos siguen legibles.
+
+En la raíz de `guion/montaje-reel-NN.json`, declara `cierre_referencia` cuando se reutilice esa placa. Por ejemplo, una pieza de 354 cuadros a 30 fps puede dedicar los últimos 78 a la identidad. Sustituye la huella del ejemplo por el SHA-256 del archivo real.
+
+```json
+{
+  "archivo": "edicion-03/placa-referencia.mp4",
+  "sha256": "<SHA-256 del archivo>",
+  "inicio_referencia": 0,
+  "inicio_master": 276,
+  "fotogramas": 78,
+  "fps": 30
+}
+```
+
+`validar-orden` verifica la huella y que la placa llegue hasta el último cuadro. `comprobar-reel` y `producir` comparan su imagen por zonas y fotograma a fotograma, con tolerancia para la recompresión. Revisión reproduce además la entrada desde el plano anterior y escucha el empalme, la última frase y la cola sonora.
+
 ### Diseño del carrusel y sus historias
 
 El formato configurado en este proyecto consta de cuatro láminas de 1080 × 1350 y dos historias de 1080 × 1920. Dar una función a cada lámina permite que el lector avance de una pregunta a una acción. Una secuencia posible abre con una pregunta, muestra dos pruebas visuales y cierra con una acción. Las historias reutilizan el material y preparan la respuesta desde su propio formato.

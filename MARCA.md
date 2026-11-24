@@ -10,6 +10,7 @@ Completa este documento antes de producir para una marca. Anota el origen y la f
 | Identidad de voz autorizada | | |
 | Colores, tipografías y márgenes | | |
 | Logo original y usos permitidos | | |
+| Cierre de reels y placa aprobada | Registra la fuente privada, la cadencia, el tramo limpio y el empalme de sonido. | |
 | Fuentes de imágenes y autorización de uso | | |
 | Canal de reservas o ventas | | |
 | Horarios y vigencia de la información | | |

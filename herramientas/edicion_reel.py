@@ -71,6 +71,23 @@ def orden_montaje(folder, version):
         raise ValueError("El guionista debe asignar tramo y operación a " + ", ".join(missing) + ".")
     digest = sha256(plan)
     result = {"orden_sha256": digest, "duracion": duration, "asignacion": assigned}
+    if "cierre_referencia" in data:
+        plate = data["cierre_referencia"]
+        if not isinstance(plate, dict):
+            raise ValueError("cierre_referencia debe describir una placa local.")
+        for key in ("inicio_referencia", "inicio_master", "fotogramas"):
+            if type(plate.get(key)) is not int or plate[key] < 0:
+                raise ValueError(f"Fotograma inválido en cierre_referencia.{key}.")
+        fps = plate.get("fps")
+        if not numero(fps) or fps <= 0 or plate["fotogramas"] < 1:
+            raise ValueError("La placa necesita fps y fotogramas positivos.")
+        if fps != data.get("fps", fps):
+            raise ValueError("Los fps de la placa deben coincidir con los de la orden.")
+        if round(duration * fps) != plate["inicio_master"] + plate["fotogramas"]:
+            raise ValueError("El último cuadro de la placa debe coincidir con el final del máster.")
+        if sha256(local(folder, plate.get("archivo"))) != plate.get("sha256"):
+            raise ValueError("Cambió la huella de la placa de referencia.")
+        result["cierre_referencia"] = plate
     contract = data.get("guion_voz")
     if contract is None:
         # Las entregas previas ya revisadas conservan el contrato con el que se aprobaron.
@@ -205,10 +222,37 @@ def expediente(folder, version):
     if data.get("video_sha256") != digest:
         raise ValueError("La huella del MP4 difiere del expediente de edición.")
     stamp = hashlib.sha256(json.dumps(fingerprints, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
-    return {"archivo": str(master), "video_sha256": digest, "edicion_sha256": stamp, "duracion": plan["duracion"]}
+    result = {"archivo": str(master), "video_sha256": digest, "edicion_sha256": stamp, "duracion": plan["duracion"]}
+    if "cierre_referencia" in plan:
+        plate = plan["cierre_referencia"]
+        result["cierre_referencia"] = {**plate, "archivo": str(local(folder, plate["archivo"]))}
+    return result
 
 
-def comprobar_reproduccion(master, ffmpeg, duration):
+def comprobar_placa(master, ffmpeg, plate):
+    count = plate["fotogramas"]
+    starts = (plate["inicio_referencia"], plate["inicio_master"])
+    filters = []
+    for index, start in enumerate(starts):
+        # Un mismo reloj de comparación empareja imágenes por índice aunque sus PTS de origen difieran.
+        filters.append(f"[{index}:v:0]trim=start_frame={start}:end_frame={start + count},"
+                       f"settb=1/1000,setpts=N*1000,scale=144:256:flags=area,setsar=1,format=gbrp[v{index}]")
+    # Promediar la diferencia por zonas evita que el fondo uniforme oculte una firma ausente.
+    filters.append("[v0][v1]blend=all_mode=difference:shortest=1,scale=36:64:flags=area,format=rgb24[d]")
+    result = subprocess.run([ffmpeg, "-nostdin", "-v", "error", "-xerror", "-filter_complex_threads", "1",
+                             "-i", plate["archivo"], "-i", str(master), "-filter_complex", ";".join(filters),
+                             "-map", "[d]", "-fps_mode", "passthrough", "-f", "rawvideo", "-threads", "1", "-"],
+                            check=True, stdout=subprocess.PIPE)
+    frame_size = 36 * 64 * 3
+    if len(result.stdout) != count * frame_size:
+        raise ValueError("Faltan fotogramas de la placa en la referencia o en el máster.")
+    for idx in range(count):
+        block = result.stdout[idx * frame_size:(idx + 1) * frame_size]
+        if max(block) > 18:
+            raise ValueError(f"La placa difiere de la referencia en el fotograma {starts[1] + idx} del máster.")
+
+
+def comprobar_reproduccion(master, ffmpeg, duration, cierre_referencia=None):
     if not ffmpeg:
         raise ValueError("Instala FFmpeg o configura KONDUCE_FFMPEG para verificar el máster.")
     result = subprocess.run([ffmpeg, "-nostdin", "-v", "error", "-xerror", "-progress", "pipe:1",
@@ -217,6 +261,11 @@ def comprobar_reproduccion(master, ffmpeg, duration):
     times = re.findall(r"^out_time_us=(\d+)$", result.stdout, re.MULTILINE)
     if not times or abs(int(times[-1]) / 1_000_000 - duration) > 0.25:
         raise ValueError("La duración decodificada difiere de la orden del guionista.")
+    if cierre_referencia is not None:
+        frames = re.findall(r"^frame=\s*(\d+)$", result.stdout, re.MULTILINE)
+        if not frames or int(frames[-1]) != cierre_referencia["inicio_master"] + cierre_referencia["fotogramas"]:
+            raise ValueError("El número de fotogramas del máster difiere de la orden de cierre.")
+        comprobar_placa(master, ffmpeg, cierre_referencia)
 
 
 def ultima_revision(folder):

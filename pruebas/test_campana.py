@@ -2,13 +2,33 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
 import json
+import shutil
+import subprocess
 
 from campana import ROOT, VIDEO, account_name, start
 from herramientas.orden_carrusel import orden_carrusel
-from herramientas.edicion_reel import HERRAMIENTAS, orden_montaje, sha256
+from herramientas.edicion_reel import HERRAMIENTAS, comprobar_placa, orden_montaje, sha256
 
 
 class Expediente(unittest.TestCase):
+    def test_comparacion_de_placa_detecta_un_cuadro_distinto_y_un_cierre_corto(self):
+        ffmpeg = shutil.which("ffmpeg") or ROOT / ".local/ffmpeg.exe"
+        if not Path(ffmpeg).is_file():
+            self.skipTest("La prueba de imagen necesita FFmpeg.")
+        with TemporaryDirectory() as tmp:
+            ref = Path(tmp) / "placa.mkv"
+            wrong = Path(tmp) / "cambio.mkv"
+            subprocess.run([ffmpeg, "-v", "error", "-f", "lavfi", "-i", "color=white:s=144x256:r=10:d=1",
+                            "-vf", "drawbox=x=32:y=110:w=80:h=30:color=green:t=fill", "-c:v", "ffv1", ref], check=True)
+            subprocess.run([ffmpeg, "-v", "error", "-i", ref, "-vf", "negate=enable='eq(n,4)'",
+                            "-c:v", "ffv1", wrong], check=True)
+            plate = dict(archivo=ref, inicio_referencia=2, inicio_master=2, fotogramas=8)
+            comprobar_placa(ref, ffmpeg, plate)
+            with self.assertRaisesRegex(ValueError, "fotograma 4"):
+                comprobar_placa(wrong, ffmpeg, plate)
+            with self.assertRaisesRegex(ValueError, "Faltan fotogramas"):
+                comprobar_placa(ref, ffmpeg, {**plate, "fotogramas": 9})
+
     def test_orden_reel_vincula_voz_subtitulos_y_toma_a_la_frase(self):
         with TemporaryDirectory() as tmp:
             folder = start(Path(tmp), "cuenta.demo", "2026-11-21")
@@ -36,6 +56,24 @@ class Expediente(unittest.TestCase):
                                  "subtitulos": "frases.srt", "tomas": shots}
             plan_file.write_text(json.dumps(plan), encoding="utf-8")
             self.assertEqual(orden_montaje(folder, 1)["subtitulos_sha256"], sha256(srt))
+            plate_file = folder / "placa.mp4"
+            plate_file.write_bytes(b"placa firmada")
+            plate = {"archivo": "placa.mp4", "sha256": sha256(plate_file), "fps": 30,
+                     "inicio_referencia": 0, "inicio_master": 40, "fotogramas": 20}
+            plan["cierre_referencia"] = plate
+            plan_file.write_text(json.dumps(plan), encoding="utf-8")
+            self.assertEqual(orden_montaje(folder, 1)["cierre_referencia"], plate)
+            plate["inicio_master"] = 39
+            plan_file.write_text(json.dumps(plan), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "último cuadro"):
+                orden_montaje(folder, 1)
+            plate["inicio_master"] = 40
+            plan_file.write_text(json.dumps(plan), encoding="utf-8")
+            plate_file.write_bytes(b"otra placa")
+            with self.assertRaisesRegex(ValueError, "huella de la placa"):
+                orden_montaje(folder, 1)
+            del plan["cierre_referencia"]
+            plan_file.write_text(json.dumps(plan), encoding="utf-8")
             for plugin, skill in (("efectos-converzzo", "parallax-3d"), ("tipografia-converzzo", "gancho")):
                 self.assertNotIn(plugin, orden_montaje(folder, 1)["asignacion"])
                 orders.append({**orders[0], "id": plugin, "herramienta": plugin, "skill": skill})

@@ -118,7 +118,7 @@ def produce(folder, formats, version, ffmpeg, draft=False):
         if kind == "reel" and not draft:
             try:
                 checked = expediente(folder, version or ultima_revision(folder))
-                comprobar_reproduccion(checked["archivo"], ffmpeg, checked["duracion"])
+                comprobar_reproduccion(checked["archivo"], ffmpeg, checked["duracion"], checked.get("cierre_referencia"))
                 outputs["reel"] = checked["archivo"]
             except (ValueError, OSError, subprocess.CalledProcessError) as error:
                 outputs["reel"] = {"estado": "pendiente_edicion", "motivo": str(error)}
@@ -229,7 +229,7 @@ def main():
         return
     if args.cmd == "comprobar-reel":
         checked = expediente(args.carpeta, args.revision)
-        comprobar_reproduccion(checked["archivo"], args.ffmpeg, checked["duracion"])
+        comprobar_reproduccion(checked["archivo"], args.ffmpeg, checked["duracion"], checked.get("cierre_referencia"))
         print(json.dumps(checked, ensure_ascii=False, indent=2))
         return
     if args.cmd == "producir":
