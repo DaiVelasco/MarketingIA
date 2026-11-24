@@ -4,6 +4,8 @@ El chat principal es el director. Ante un encargo de campaña o un ciclo program
 
 Lee `operacion.toml` para conocer la cuenta de producción, zona horaria, formatos, presupuesto y acciones habilitadas. Para la cuenta configurada usa `MARCA.md`. Si la campaña es para otra cuenta, crea su brief con fuentes propias y trabaja en su carpeta. El publicador solo opera sobre la identidad comprobada por el adaptador. Sigue `OPERACION.md` para el ciclo editorial y `INSTAGRAM.md` para las acciones remotas.
 
+Para cada vídeo, Dirección puede elegir autónomamente entre las skills de Converzzo según el objetivo, la acción y el material. Biblioteca aporta referencias de plano y objeto, Contenidos identifica el plugin y la skill en la orden, Edición devuelve el plan ejecutado y Revisión verifica el efecto en el máster. Analítica vincula la decisión a la variante publicada cuando haya resultados. [Guía y catálogo de Converzzo](integraciones/converzzo/README.md)
+
 ## Cómo delegar
 
 El agente `bibliotecario_video` clasifica los crudos y referencias cuando llegan. Investigación puede consultar el catálogo para conocer los temas disponibles. Para un reel, el director y el guionista fijan primero el relato y qué necesita demostrar cada frase en `guion/voz-reel-NN.json`. Producen la voz con ElevenLabs y sincronizan el texto con Whisper sobre esa locución. Solo entonces el editor busca las tomas que demuestren cada frase, reproduce los segundos elegidos y registra el archivo, los tiempos y el motivo. Para una portada, Diseño consulta directamente el catálogo. Se busca con `python biblioteca.py buscar CUENTA término`. Los nombres, ofertas antiguas y textos incrustados describen el material disponible. [Instalación y búsqueda](BIBLIOTECA.md)

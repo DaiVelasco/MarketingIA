@@ -1,0 +1,32 @@
+{
+  "name": "converzzo-marketingia",
+  "interface": {
+    "displayName": "Converzzo para MarketingIA"
+  },
+  "plugins": [
+    {
+      "name": "efectos-converzzo",
+      "source": {
+        "source": "local",
+        "path": "./plugins/efectos-converzzo"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Multimedia"
+    },
+    {
+      "name": "tipografia-converzzo",
+      "source": {
+        "source": "local",
+        "path": "./plugins/tipografia-converzzo"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Multimedia"
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+--- a/plugins/tipografia-converzzo/motor/render.mjs
++++ b/plugins/tipografia-converzzo/motor/render.mjs
+@@ -11,16 +11,19 @@
+ import { fileURLToPath } from "node:url";
+ import { EFECTOS_TIEMPO, filtro, mapear, piezas, remapearPlan } from "./tiempo.mjs";
+ 
++const chromeLocal = process.env.CONVERZZO_CHROME || (fs.existsSync("C:/Program Files/Google/Chrome/Application/chrome.exe") ? "C:/Program Files/Google/Chrome/Application/chrome.exe" : null);
+ const MOTOR = path.dirname(fileURLToPath(import.meta.url));
++process.env.PYTHONUTF8 ??= "1";
++process.env.PATH = path.resolve(MOTOR, "../../../..") + path.delimiter + process.env.PATH;
+ const [video, planFile, salida, ...resto] = process.argv.slice(2);
+ if (!video || !planFile || !salida) {
+   console.log("Uso: node render.mjs <video> <plan.json> <salida.mp4> [--still 1.5,3]");
+   process.exit(1);
+ }
+ let still = resto[0] === "--still" ? resto[1].split(",").map(Number) : null;
+-const PY = fs.existsSync(path.join(MOTOR, ".venv/bin/python")) ? path.join(MOTOR, ".venv/bin/python") : path.join(MOTOR, ".venv/Scripts/python.exe");
+-const npx = process.platform === "win32" ? "npx.cmd" : "npx";
+-const run = (cmd, args) => execFileSync(cmd, args, { stdio: ["ignore", "pipe", "inherit"], cwd: MOTOR, shell: process.platform === "win32", maxBuffer: 1 << 26 }).toString();
++const PY = path.resolve(MOTOR, "../../../python", process.platform === "win32" ? "Scripts/python.exe" : "bin/python");
++
++const run = (cmd, args) => execFileSync(cmd, args, { stdio: ["ignore", "pipe", "inherit"], cwd: MOTOR, windowsHide: true, maxBuffer: 1 << 26 }).toString();
+ const NECESITAN_RECORTE = ["dolly-zoom", "color-pop", "fondo-borroso", "cambiar-fondo", "collage-halftone"];
+ const CONOCIDOS = [...EFECTOS_TIEMPO, "cortar-silencios", "subtitulos", "limpiar-voz", "musica", "zoom-in", "zoom-suave", "zoom-out", "sacudida", "dolly-zoom", "reencuadre", "barrido", "zoom-transicion", "look", "color-auto", "cambiar-fondo", "color-pop", "fondo-borroso", "grano", "flash", "glitch", "precio-pop", "antes-despues", "cta-whatsapp", "paso-a-paso", "comparativo", "ficha", "ubicacion", "gancho", "cartel-nombre", "dato", "ingredientes", "tallas-colores", "grafica-datos", "logo-sting", "tier-list", "mockup-interfaz", "widgets-vidrio", "collage-halftone", "carrusel-video", "color-referencia", "look-pelicula", "efectos-sonido",
+   "titulo-detras", "cita", "palabra-clave", "capitulo", "cuenta-regresiva", "pregunta", "texto-animado"];
+@@ -219,12 +222,12 @@
+   if (still) {
+     for (const s of still) {
+       const out = salida.replace(/\.(png|mp4)$/i, "") + `_${s}.png`;
+-      run(npx, ["remotion", "still", "src/index.ts", "Editar", path.resolve(out), `--frame=${Math.min(duracion - 1, Math.round(s * fps))}`, `--props=${tmpProps}`, "--log=error"]);
++      run(process.execPath, [path.join(MOTOR, "node_modules/@remotion/cli/remotion-cli.js"), "still", "src/index.ts", "Editar", path.resolve(out), `--frame=${Math.min(duracion - 1, Math.round(s * fps))}`, `--props=${tmpProps}`, "--log=error", ...(chromeLocal ? ["--browser-executable=" + chromeLocal] : [])]);
+       console.log("foto:", out);
+     }
+   } else {
+     const crudo = path.join(os.tmpdir(), id + "_render.mp4");
+-    run(npx, ["remotion", "render", "src/index.ts", "Editar", crudo, `--props=${tmpProps}`, "--crf=17", "--log=error", `--concurrency=${Math.max(1, Math.floor(os.cpus().length / 2))}`]);
++    run(process.execPath, [path.join(MOTOR, "node_modules/@remotion/cli/remotion-cli.js"), "render", "src/index.ts", "Editar", crudo, `--props=${tmpProps}`, "--crf=17", "--log=error", ...(chromeLocal ? ["--browser-executable=" + chromeLocal] : []), `--concurrency=${Math.max(1, Math.min(4, Math.floor(os.cpus().length / 2)))}`]);
+     const mu = capa("musica");
+     if (mu && typeof mu.musica_archivo === "string") {
+       // música de fondo que baja sola cuando hay voz (ducking) + audio final a -14 LUFS
+@@ -243,6 +246,4 @@
+   }
+ } finally {
+   fs.rmSync(dirIn, { recursive: true, force: true });
+-  // Remotion guarda copias del proyecto en la carpeta temporal en cada render: se borran para no llenar el disco.
+-  for (const d of fs.readdirSync(os.tmpdir())) if (d.startsWith("remotion-webpack-bundle-")) fs.rmSync(path.join(os.tmpdir(), d), { recursive: true, force: true });
+-}
++}
+--- a/plugins/tipografia-converzzo/motor/srt.mjs
++++ b/plugins/tipografia-converzzo/motor/srt.mjs
+@@ -12,11 +12,13 @@
+ import { fileURLToPath } from "node:url";
+ 
+ const MOTOR = path.dirname(fileURLToPath(import.meta.url));
++process.env.PYTHONUTF8 ??= "1";
++process.env.PATH = path.resolve(MOTOR, "../../../..") + path.delimiter + process.env.PATH;
+ const args = process.argv.slice(2);
+ const opt = (k, d) => { const i = args.indexOf(k); if (i < 0) return d; const v = args[i + 1]; args.splice(i, 2); return v; };
+ const frasesIn = opt("--frases"), idioma = opt("--idioma", "es"), porBloque = Number(opt("--por-bloque", "7")), bloquesOut = opt("--bloques");
+ const correcciones = JSON.parse(opt("--correcciones", "{}"));
+-const PY = fs.existsSync(path.join(MOTOR, ".venv/bin/python")) ? path.join(MOTOR, ".venv/bin/python") : path.join(MOTOR, ".venv/Scripts/python.exe");
++const PY = path.resolve(MOTOR, "../../../python", process.platform === "win32" ? "Scripts/python.exe" : "bin/python");
+ 
+ const tc = (s) => {
+   const ms = Math.max(0, Math.round(s * 1000));

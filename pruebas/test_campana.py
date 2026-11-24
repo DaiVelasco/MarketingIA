@@ -36,6 +36,17 @@ class Expediente(unittest.TestCase):
                                  "subtitulos": "frases.srt", "tomas": shots}
             plan_file.write_text(json.dumps(plan), encoding="utf-8")
             self.assertEqual(orden_montaje(folder, 1)["subtitulos_sha256"], sha256(srt))
+            for plugin, skill in (("efectos-converzzo", "parallax-3d"), ("tipografia-converzzo", "gancho")):
+                self.assertNotIn(plugin, orden_montaje(folder, 1)["asignacion"])
+                orders.append({**orders[0], "id": plugin, "herramienta": plugin, "skill": skill})
+                plan_file.write_text(json.dumps(plan), encoding="utf-8")
+                self.assertEqual(orden_montaje(folder, 1)["asignacion"][plugin], [plugin])
+            orders[-1]["skill"] = "parallax-3d"
+            plan_file.write_text(json.dumps(plan), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "no pertenece a tipografia-converzzo"):
+                orden_montaje(folder, 1)
+            orders[-1].pop("skill")  # Orden histórica con la operación en texto libre.
+            plan_file.write_text(json.dumps(plan), encoding="utf-8")
             srt.write_text(subtitles.replace("Sigue", "Corta"), encoding="utf-8")
             with self.assertRaisesRegex(ValueError, "texto de todo"):
                 orden_montaje(folder, 1)

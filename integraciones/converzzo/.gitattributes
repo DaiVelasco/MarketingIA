@@ -1,0 +1,2 @@
+# Las líneas de contexto en blanco son parte de la sintaxis de git apply.
+parches/*.patch text eol=lf -whitespace

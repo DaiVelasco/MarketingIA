@@ -87,6 +87,10 @@ El director selecciona la evidencia y la hipótesis y deja en el brief el ángul
 
 **Orden anterior al montaje.** En `guion/montaje-reel-NN.json` se guarda la duración y una lista de órdenes. Cada una lleva `id`, `entrada`, `salida` en segundos, `instruccion`, `herramienta`, `insumo` y `resultado`. Por ejemplo, si el director eligió «mostrar qué ocurre en el taller», una orden de HyperFrames puede cubrir de 4,0 a 6,1 segundos, recibir dos tomas de la sede y pedir una pantalla dividida donde se reconozca la relación entre ambas. Para voz, transcripción o ensamblaje general, el guionista indica el intervalo completo que cubren. Se admiten solapes y varias órdenes para la misma herramienta. Antes de editar, el director ejecuta `python campana.py validar-orden RUTA --revision N` y entrega al editor la hoja y su `orden_sha256`.
 
+**Selección de Converzzo por escena.** Dirección y Guion eligen entre las skills de `efectos-converzzo` y `tipografia-converzzo` según la acción visible, la locución y el objetivo del reel. El encargo puede expresarse en lenguaje natural. Por ejemplo, si el cepillo levanta una mancha en medio segundo, se puede ralentizar ese gesto. Si la comparación depende del color, se conserva el color original en ambos planos. Cuando el plano y la voz ya explican el punto, basta el corte.
+
+En las órdenes nuevas usa el nombre del plugin en `herramienta` y su identificador de catálogo en `skill`. En `instruccion` especifica ajuste y referencia. Edición conserva el plan que renderizó, los IDs atendidos y la evidencia local por revisión. Si el efecto cambia la velocidad, verifica la sincronía del siguiente corte con la voz. Ambos plugins son opcionales por pieza. [Instalación, traspasos y ejemplo validable](integraciones/converzzo/README.md)
+
 | Herramienta | Insumo y encargo que prepara el guionista | Evidencia que devuelve el editor |
 | --- | --- | --- |
 | ElevenLabs | Texto hablado y voz de marca. Una síntesis nueva requiere acceso y presupuesto para la cotización aplicable. | Pista de voz, frase utilizada, procedencia y tiempos. Si la voz autorizada ya contiene la frase, se puede recortar sin volver a sintetizarla. |

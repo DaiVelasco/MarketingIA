@@ -12,6 +12,8 @@ from urllib.parse import urlsplit
 VIDEO = "Videos del proyecto - Reel de Instagram"
 HERRAMIENTAS = ("ElevenLabs", "Whisper", "invideo", "HyperFrames", "Remotion",
                 "gbro-collage-broll", "ClaudeAnimationBase")
+CONVERZZO = ("efectos-converzzo", "tipografia-converzzo")
+PLUGINS = Path(__file__).resolve().parents[1] / "integraciones/converzzo/marketplace/plugins"
 TRASPASOS = ("investigacion", "analitica", "director", "contenidos", "editor_video", "revision")
 
 
@@ -52,13 +54,18 @@ def orden_montaje(folder, version):
                                             ("id", "herramienta", "instruccion", "insumo", "resultado")):
             raise ValueError("Cada orden necesita id, herramienta, instruccion, insumo y resultado.")
         key, tool = row["id"], row["herramienta"]
-        if key in ids or tool not in assigned:
+        if key in ids or (tool not in HERRAMIENTAS and tool not in CONVERZZO):
             raise ValueError(f"Identificador repetido o herramienta desconocida en {key}.")
+        if tool in CONVERZZO and "skill" in row:
+            skill = row["skill"]
+            if (not isinstance(skill, str) or not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", skill)
+                    or not (PLUGINS / tool / "skills" / skill / "SKILL.md").is_file()):
+                raise ValueError(f"La skill {skill!r} de la orden {key} no pertenece a {tool}.")
         begin, end = row.get("entrada"), row.get("salida")
         if not numero(begin) or not numero(end) or not 0 <= begin < end <= duration:
             raise ValueError(f"Tramo fuera de la duración del guion en {key}.")
         ids.add(key)
-        assigned[tool].append(key)
+        assigned.setdefault(tool, []).append(key)
     missing = [tool for tool, rows in assigned.items() if not rows]
     if missing:
         raise ValueError("El guionista debe asignar tramo y operación a " + ", ".join(missing) + ".")
@@ -203,7 +210,7 @@ def expediente(folder, version):
 
 def comprobar_reproduccion(master, ffmpeg, duration):
     if not ffmpeg:
-        raise ValueError("Instala FFmpeg o configura MARKETINGIA_FFMPEG para verificar el máster.")
+        raise ValueError("Instala FFmpeg o configura KONDUCE_FFMPEG para verificar el máster.")
     result = subprocess.run([ffmpeg, "-nostdin", "-v", "error", "-xerror", "-progress", "pipe:1",
                              "-i", str(master), "-map", "0:v:0", "-map", "0:a:0", "-f", "null", "-"],
                             check=True, capture_output=True, text=True)

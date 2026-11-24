@@ -1,0 +1,26 @@
+{
+  "plugins": {
+    "efectos-converzzo": {
+      "repo": "https://github.com/productoraudiovisual-droid/efectos-converzzo",
+      "commit": "e5a383ff0abf22c5d21c6a256fce2b137bc5682b",
+      "version": "1.9.0"
+    },
+    "tipografia-converzzo": {
+      "repo": "https://github.com/productoraudiovisual-droid/tipografia-converzzo",
+      "commit": "4912a39731a675dfc0518ba1787692f7381026bf",
+      "version": "1.0.0"
+    }
+  },
+  "modelos": [
+    {
+      "repo": "facebook/sam2.1-hiera-small",
+      "commit": "ee5bba1d82bb8749febdf90f45e84b687142ba03",
+      "sha256": "0a4067b11ce1e23d5229203f11c718a823060d15a4b23fa2372a7d4b77cbbc60"
+    },
+    {
+      "repo": "depth-anything/Depth-Anything-V2-Small-hf",
+      "commit": "5426e4f0f36572d16453bbda7a8389317b1bef99",
+      "sha256": "3152477ce0d8d6978d76b995120de97cb5b928701fd0f817769f59e249a16b70"
+    }
+  ]
+}

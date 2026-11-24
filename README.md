@@ -2,6 +2,8 @@
 
 Equipo de agentes para convertir una hipótesis editorial en un reel y un carrusel de Instagram. Dirección elige el objetivo, Guion especifica cada toma y lámina, Video y Diseño trabajan en paralelo, y Revisión comprueba las exportaciones antes de que Publicación use el adaptador de Meta. El bibliotecario localiza planos y la memoria por cuenta conserva instrucciones, decisiones y resultados para la campaña siguiente.
 
+La edición incluye los plugins de Efectos y Tipografía de Converzzo, con 88 skills y preparación local de los modelos de seguimiento y profundidad. El equipo selecciona cada recurso por escena y entrega el plan y su revisión. [Instalación, catálogo y traspasos](integraciones/converzzo/README.md)
+
 ## Instalar en otra PC
 
 1. Instala Git, Python 3.11 o posterior, Node.js 20 o posterior y FFmpeg con FFprobe. Para delegar y clasificar imágenes, configura Codex y abre el proyecto en una sesión con acceso a los especialistas. Los trece perfiles están en `.codex/agents/`.

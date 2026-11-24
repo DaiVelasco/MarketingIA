@@ -1,0 +1,81 @@
+--- a/plugins/efectos-converzzo/motor/render.mjs
++++ b/plugins/efectos-converzzo/motor/render.mjs
+@@ -14,7 +14,10 @@
+ import { fileURLToPath } from "node:url";
+ import { EFECTOS_TIEMPO, filtro, mapear, piezas, remapearPlan } from "./tiempo.mjs";
+ 
++const chromeLocal = process.env.CONVERZZO_CHROME || (fs.existsSync("C:/Program Files/Google/Chrome/Application/chrome.exe") ? "C:/Program Files/Google/Chrome/Application/chrome.exe" : null);
+ const MOTOR = path.dirname(fileURLToPath(import.meta.url));
++process.env.PYTHONUTF8 ??= "1";
++process.env.PATH = path.resolve(MOTOR, "../../../..") + path.delimiter + process.env.PATH;
+ const [video, planFile, salida, ...resto] = process.argv.slice(2);
+ if (!video || !planFile || !salida) {
+   console.log("Uso: node render.mjs <video> <plan.json> <salida.mp4> [--still 1.5,3]");
+@@ -22,12 +25,12 @@
+ }
+ const iStill = resto.indexOf("--still");
+ let still = iStill >= 0 ? resto[iStill + 1].split(",").map(Number) : null;
+-const PY = fs.existsSync(path.join(MOTOR, ".venv/bin/python")) ? path.join(MOTOR, ".venv/bin/python") : path.join(MOTOR, ".venv/Scripts/python.exe");
+-const npx = process.platform === "win32" ? "npx.cmd" : "npx";
++const PY = path.resolve(MOTOR, "../../../python", process.platform === "win32" ? "Scripts/python.exe" : "bin/python");
++
+ // ¿están PyTorch y Transformers? (SAM 2.1 y profundidad); si no, se usan los métodos sin IA pesada
+ let haySam = null;
+ const tieneSam = () => (haySam ??= spawnSync(PY, ["-c", "import torch, transformers"], { stdio: "ignore" }).status === 0);
+-const run = (cmd, args, env) => execFileSync(cmd, args, { stdio: ["ignore", "pipe", "inherit"], cwd: MOTOR, shell: process.platform === "win32", maxBuffer: 1 << 26, env: env ? { ...process.env, ...env } : process.env }).toString();
++const run = (cmd, args, env) => execFileSync(cmd, args, { stdio: ["ignore", "pipe", "inherit"], cwd: MOTOR, windowsHide: true, maxBuffer: 1 << 26, env: env ? { ...process.env, ...env } : process.env }).toString();
+ 
+ // caché: lo que ya se calculó para el mismo video (transcripción, caras, recortes) se reutiliza
+ const CACHE = path.join(MOTOR, ".cache");
+@@ -380,7 +383,7 @@
+   // GPU del navegador: en Mac y Windows usa la tarjeta gráfica (si no hay, Chrome cae solo al modo por software)
+   const gl = process.env.EFECTOS_GL || (process.platform === "linux" ? null : "angle");
+   const chromiumOptions = gl ? { gl } : {};
+-  const navegador = await openBrowser("chrome", { chromiumOptions });
++  const navegador = await openBrowser("chrome", { chromiumOptions, browserExecutable: chromeLocal });
+   const comun = { serveUrl, inputProps: plan, puppeteerInstance: navegador, chromiumOptions, logLevel: "error" };
+   const composition = await selectComposition({ ...comun, id: "Editar" });
+ 
+@@ -423,6 +426,4 @@
+ } finally {
+   fs.rmSync(dirIn, { recursive: true, force: true });
+   try { limpiarCache(); } catch {}
+-  // Remotion guarda copias del proyecto en la carpeta temporal en cada render: se borran para no llenar el disco.
+-  for (const d of fs.readdirSync(os.tmpdir())) if (d.startsWith("remotion-webpack-bundle-")) fs.rmSync(path.join(os.tmpdir(), d), { recursive: true, force: true });
+ }
+--- a/plugins/efectos-converzzo/motor/scripts/sam.py
++++ b/plugins/efectos-converzzo/motor/scripts/sam.py
+@@ -111,9 +111,9 @@
+ completo = None                                        # (paso, desde, hasta) si la caché tiene una pasada completa
+ if CACHE and os.path.exists(CACHE):
+     try:
+-        z = np.load(CACHE)
+-        claves = {int(k[2:]): z[k] for k in z.files if k.startswith("m_")}
+-        completo = tuple(int(x) for x in z["completo"]) if "completo" in z.files else None
++        with np.load(CACHE) as z:
++            claves = {int(k[2:]): z[k] for k in z.files if k.startswith("m_")}
++            completo = tuple(int(x) for x in z["completo"]) if "completo" in z.files else None
+         if claves and next(iter(claves.values())).shape[1:] != (mh, mw):
+             claves, completo = {}, None
+     except Exception:
+@@ -164,7 +164,7 @@
+ else:
+     print("sam: máscaras en caché", file=sys.stderr, flush=True)
+ print(f"sam: {len(claves)} cuadros clave en {time.time() - t0:.0f} s", file=sys.stderr, flush=True)
+-if CACHE:
++if CACHE and not cubre:
+     try:
+         extra = {"completo": np.array(completo)} if completo else {}
+         np.savez_compressed(CACHE + ".tmp.npz", **{f"m_{k}": v for k, v in claves.items()}, **extra)
+--- a/plugins/efectos-converzzo/motor/scripts/profundidad.py
++++ b/plugins/efectos-converzzo/motor/scripts/profundidad.py
+@@ -15,7 +15,8 @@
+ MODELOS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "models")
+ 
+ # 1. el cuadro, ya en el encuadre final
+-crudo = subprocess.run(["ffmpeg", "-v", "error", "-ss", f"{seg:.3f}", "-i", fuente, "-frames:v", "1",
++busqueda = ["-ss", f"{seg:.3f}"] if seg > 0 else []
++crudo = subprocess.run(["ffmpeg", "-v", "error", *busqueda, "-i", fuente, "-frames:v", "1",
+                         "-vf", f"scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H}", "-f", "rawvideo", "-pix_fmt", "rgb24", "-"],
+                        capture_output=True, check=True).stdout
+ img = np.frombuffer(crudo[:W * H * 3], np.uint8).reshape(H, W, 3).copy()
