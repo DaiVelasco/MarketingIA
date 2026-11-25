@@ -1,0 +1,127 @@
+{
+  "titulo": "El pronóstico de la cabina",
+  "fps": 30,
+  "duracion": 12.2,
+  "formato": "1080 × 1920, estéreo 48 kHz",
+  "planos": [
+    {
+      "id": "presentadora-hablando",
+      "desde": 0,
+      "hasta": 7.2,
+      "entrada": 0,
+      "salida": 7.2
+    },
+    {
+      "id": "manguera",
+      "desde": 27.1,
+      "hasta": 29.3,
+      "entrada": 7.2,
+      "salida": 9.6,
+      "velocidad": 0.9166666666666666,
+      "recorte_pixeles": [
+        72,
+        72,
+        441,
+        784
+      ]
+    }
+  ],
+  "capas": [
+    {
+      "id": "clari-nueva-06",
+      "herramienta": "ElevenLabs",
+      "entrada": 0,
+      "salida": 8,
+      "pista": "A1, locución y reloj de labios"
+    },
+    {
+      "id": "marcas-nuevas-06",
+      "herramienta": "Whisper",
+      "entrada": 0,
+      "salida": 7,
+      "pista": "S1, palabras del guion"
+    },
+    {
+      "id": "labios-y-apertura-06",
+      "herramienta": "Remotion",
+      "entrada": 0,
+      "salida": 7.2,
+      "pista": "V1, sujeto frontal con labios de Genjutsu"
+    },
+    {
+      "id": "subtitulos-clari-06",
+      "herramienta": "tipografia-converzzo",
+      "entrada": 0,
+      "salida": 7,
+      "pista": "V3, subtítulos bajo la clavícula"
+    },
+    {
+      "id": "nube-de-un-carro-06",
+      "herramienta": "Remotion",
+      "entrada": 2.1,
+      "salida": 5.1,
+      "pista": "V2, gráfico pequeño junto al personaje"
+    },
+    {
+      "id": "papel-del-parte-06",
+      "herramienta": "gbro-collage-broll",
+      "entrada": 2.1,
+      "salida": 2.7333333333333334,
+      "pista": "V2, pequeño soporte detrás de la nube"
+    },
+    {
+      "id": "papel-se-despliega-06",
+      "herramienta": "HyperFrames",
+      "entrada": 2.1,
+      "salida": 2.7333333333333334,
+      "pista": "V2, entrada de soporte meteorológico"
+    },
+    {
+      "id": "ambiente-de-cabina-06",
+      "herramienta": "invideo",
+      "entrada": 0,
+      "salida": 12.2,
+      "pista": "A2, ambiente de taller y empalme"
+    },
+    {
+      "id": "agua-real-06",
+      "herramienta": "Remotion",
+      "entrada": 7.2,
+      "salida": 9.6,
+      "pista": "V1, agua en el sedán"
+    },
+    {
+      "id": "golpe-agua-06",
+      "herramienta": "efectos-converzzo",
+      "entrada": 7.2,
+      "salida": 9.6,
+      "pista": "A3, transición al agua"
+    },
+    {
+      "id": "gota-cta-06",
+      "herramienta": "ClaudeAnimationBase",
+      "entrada": 7.2,
+      "salida": 7.9,
+      "pista": "V3, entrada del CTA sobre el documental"
+    },
+    {
+      "id": "copiloto-06",
+      "herramienta": "Remotion",
+      "entrada": 7.2,
+      "salida": 9.466666666666667,
+      "pista": "V3, CTA en el tramo de agua"
+    },
+    {
+      "id": "montaje-pronostico-06",
+      "herramienta": "Remotion",
+      "entrada": 0,
+      "salida": 12.2,
+      "pista": "Composición general del reel"
+    }
+  ],
+  "placa_final": {
+    "inicio_master": 288,
+    "fotogramas": 78,
+    "fps": 30
+  }
+}

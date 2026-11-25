@@ -1,0 +1,9 @@
+1
+00:00:00,240 --> 00:00:03,800
+Pronóstico de hoy: lluvia
+para un solo carro.
+
+2
+00:00:04,200 --> 00:00:07,000
+En esta cabina, la nube
+viene con manguera.

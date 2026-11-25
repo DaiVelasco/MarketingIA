@@ -1,0 +1,19 @@
+{
+  "cuenta": "konduce.ve",
+  "revision": 6,
+  "titulo": "El pronóstico de la cabina",
+  "idioma": "es-VE",
+  "voz": "Locución nueva de ElevenLabs en español venezolano. Dirección aprobó este texto literal para grabación. La presentadora dice las dos frases a cámara como un pronóstico conversado, con picardía y una pausa breve después de «carro». El remate «manguera» debe oírse y verse completo.",
+  "frases": [
+    {
+      "id": "f1",
+      "texto": "Pronóstico de hoy: lluvia para un solo carro.",
+      "objetivo_visual": "La presentadora está delante de una cabina de lavado de Konduce. Se ve su boca desde antes de «Pronóstico» y cuando articula «para». Sostiene la mirada a cámara como si diera un parte del tiempo."
+    },
+    {
+      "id": "f2",
+      "texto": "En esta cabina, la nube viene con manguera.",
+      "objetivo_visual": "Se mantiene el rostro a cámara durante toda la frase. La boca se cierra antes de abrirse en la m de «manguera». Dejar que se complete la última sílaba antes de cortar a una toma real de agua del lavado y al cierre de Konduce."
+    }
+  ]
+}
