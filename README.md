@@ -51,6 +51,8 @@ Copy-Item ejemplos/reel/pie-de-foto.txt "$jornada/guion/pie-de-foto.txt"
 python campana.py producir $jornada --formato reel --borrador
 ```
 
+El ejemplo de Remotion incluye tres trazos que siguen detalles del carro y pasan al marcador. Puedes editar sus formas y tiempos o exportar la capa con transparencia. [Composición Tres pistas](ejemplos/reel/tres-pistas/)
+
 En esa misma jornada puedes probar la validación del guion y la exportación de cuatro láminas y dos historias. El ejemplo genera figuras geométricas y texto de muestra en la carpeta privada de la jornada.
 
 ```powershell
