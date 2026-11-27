@@ -12,6 +12,7 @@ PLANTILLA = Path(__file__).resolve().parent
 sys.path.insert(0, str(PLANTILLA.parents[1]))
 from herramientas.edicion_reel import cargar, local, orden_montaje
 from herramientas.entrega_archivos import publicar_archivo
+from ambiente import PISTA_A2, capas
 
 @contextmanager
 def reservar_revision(carpeta):
@@ -72,7 +73,10 @@ def ejecutar(args,parser,camp,codigo,edit):
     info=orden_montaje(camp,args.revision)
     orden=cargar(camp/"guion"/f"montaje-reel-{codigo}.json")
     recursos=cargar(edit/"recursos.json")
-    local(camp,recursos.get("ambiente"))
+    capas_audio = capas(camp, recursos)
+    info["capas_audio"] = ["voz", *capas_audio]
+    if recursos.get("ambiente"):
+        print("Se omite la pista ambiente declarada en recursos.json durante el montaje.", file=sys.stderr)
     anterior=0
     efectos=[]
     for n,toma in enumerate(orden["guion_voz"]["tomas"],1):
@@ -103,8 +107,9 @@ def ejecutar(args,parser,camp,codigo,edit):
     publicar_archivo(local(camp,orden["guion_voz"]["subtitulos"]),edit/"pistas/subtitulos.srt")
     from herramientas.edicion_reel import sha256
     import tempfile
-    pistas = {p.name:sha256(p) for p in (edit/"pistas").iterdir() if p.name in {"imagen.mp4","voz.wav","ambiente.wav","subtitulos.srt"}}
-    recibo = {"master":destino.name,"video_sha256":sha256(destino),"orden_sha256":info["orden_sha256"],"pistas":pistas}
+    pistas = {p.name:sha256(p) for p in (edit/"pistas").iterdir() if p.name in {"imagen.mp4","voz.wav",PISTA_A2,"subtitulos.srt"}}
+    recibo = {"master":destino.name,"video_sha256":sha256(destino),"orden_sha256":info["orden_sha256"],"pistas":pistas,
+              "capas_audio": info["capas_audio"]}
     with tempfile.TemporaryDirectory() as temporal:
         path=Path(temporal)/"entrega-local.json"
         path.write_text(json.dumps(recibo,ensure_ascii=False,indent=2),encoding="utf8")

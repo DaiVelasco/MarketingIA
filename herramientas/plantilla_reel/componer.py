@@ -13,6 +13,7 @@ HERE=EDIT
 from herramientas.edicion_reel import orden_montaje, sha256
 from herramientas.entrega_archivos import publicar_archivo
 from herramientas.edicion_reel import leer_subtitulos, local
+from ambiente import PISTA_A2, crear
 
 def main():
     ap=argparse.ArgumentParser(description=__doc__)
@@ -93,18 +94,17 @@ def main():
         props=scratch/"props.json"
         opciones={"fotogramas":total,"planos":shots,"subtitulos":[],"tinta":anim}
         props.write_text(json.dumps(opciones,ensure_ascii=False),encoding="utf8")
-        from ambiente import crear
-        crear(args.ffmpeg,scratch/"ambiente.wav")
+        crear(args.ffmpeg,scratch/PISTA_A2)
         renderizar(public,scratch/"imagen.mp4",props,scratch)
         opciones["subtitulos"]=cues
         props.write_text(json.dumps(opciones,ensure_ascii=False),encoding="utf8")
         renderizar(public,scratch/"con-subtitulos.mp4",props,scratch)
-        ff("-i",scratch/"con-subtitulos.mp4","-i",voz,"-i",scratch/"ambiente.wav","-filter_complex",
+        ff("-i",scratch/"con-subtitulos.mp4","-i",voz,"-i",scratch/PISTA_A2,"-filter_complex",
            f"[1:a]volume={float(cfg.get('voz_db',0))}dB[voz];[voz][2:a]amix=inputs=2:normalize=0,alimiter=limit=0.96:level=0:latency=1[a]","-map","0:v:0","-map","[a]",
            "-c:v","copy","-c:a","aac","-b:a","192k","-ar",48000,"-movflags","+faststart","-t",dur,scratch/"final.mp4")
         ff("-xerror","-i",scratch/"final.mp4","-map","0:v:0","-map","0:a:0","-f","null","-")
         publicar_archivo(scratch/"imagen.mp4",stems/"imagen.mp4")
-        publicar_archivo(scratch/"ambiente.wav",stems/"ambiente.wav")
+        publicar_archivo(scratch/PISTA_A2,stems/PISTA_A2)
         if voz.resolve()!=(stems/"voz.wav").resolve():
             publicar_archivo(voz,stems/"voz.wav")
         publicar_archivo(scratch/"final.mp4",args.salida)

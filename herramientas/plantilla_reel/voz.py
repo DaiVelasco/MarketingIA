@@ -14,6 +14,7 @@ import wave
 from rutas import CAM, EDIT, CODIGO, FFMPEG
 HERE=EDIT
 from herramientas.entrega_archivos import publicar_archivo
+from herramientas import guion_rodaje
 
 def digest(path):
     with path.open("rb") as f:
@@ -86,8 +87,6 @@ def alinear(guion,resultado,duracion):
     return {"cobertura":round(coverage,4),"palabras":words,"frases":spans,"subtitulos":cues}
 
 def main():
-    import torch
-    import whisper
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument("original",type=Path)
     p.add_argument("modelo",type=Path)
@@ -95,6 +94,10 @@ def main():
     args=p.parse_args()
     guionfile=CAM/"guion"/f"voz-reel-{CODIGO}.json"
     guion=json.loads(guionfile.read_text(encoding="utf8"))
+    if "rodaje" in guion or guion_rodaje.requiere_rodaje(CAM):
+        guion_rodaje.validar(guion)
+    import torch
+    import whisper
     src=args.original.resolve(strict=True)
     torch.set_num_threads(3)
     def ff(*args_ff):

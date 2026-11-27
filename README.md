@@ -1,5 +1,7 @@
 # MarketingIA
 
+[Ver los videos terminados en orden de creación](videos/README.md)
+
 Equipo de agentes para convertir una hipótesis editorial en un reel y un carrusel de Instagram. Dirección elige el objetivo, Guion especifica cada toma y lámina, Video y Diseño trabajan en paralelo, y Revisión comprueba las exportaciones antes de que Publicación use el adaptador de Meta. El bibliotecario localiza planos y la memoria por cuenta conserva instrucciones, decisiones y resultados para la campaña siguiente.
 
 La edición incluye los plugins de Efectos y Tipografía de Converzzo, con 88 skills y preparación local de los modelos de seguimiento y profundidad. El equipo selecciona cada recurso por escena y entrega el plan y su revisión. [Instalación, catálogo y traspasos](integraciones/converzzo/README.md)
@@ -87,3 +89,7 @@ El monitor de la biblioteca puede arrancar al iniciar sesión en Windows mediant
 | Credenciales y adaptador de Meta | [Instagram](INSTAGRAM.md) |
 
 Las trece skills de Instagram se distribuyen con su licencia MIT original. El equipo puede leerlas directamente desde el proyecto. [Código de referencia](https://github.com/Jakeschincariol/instagram-agent-skill) · [Licencia](referencias/instagram-agent/LICENSE)
+
+## Guion y sonido de los reels
+
+Dirección consulta el historial del calendario y valida la hoja de rodaje con voz, cámara, acciones y cortes por escena antes de editar. La mezcla usa voces limpias, música autorizada y efectos puntuales. El motor acepta música y efectos por separado y mantiene las pausas del guion. [Hoja de rodaje](herramientas/GUION.md) · [Diseño de sonido](integraciones/sonido/README.md)

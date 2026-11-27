@@ -11,9 +11,10 @@ import tempfile
 import tomllib
 from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
-from herramientas.edicion_reel import (VIDEO, comprobar_reproduccion, expediente,
+from herramientas.edicion_reel import (VIDEO, cargar, comprobar_reproduccion, expediente,
                                       orden_montaje, sha256, ultima_revision)
 from herramientas.orden_carrusel import orden_carrusel
+from herramientas import guion_rodaje
 
 ROOT = Path(__file__).resolve().parent
 
@@ -207,10 +208,14 @@ def main():
             p.add_argument("--salida", type=Path, help="Ficha nueva para revisión")
     local_ffmpeg = ROOT / ".local/ffmpeg.exe"
     ffmpeg = os.environ.get("MARKETINGIA_FFMPEG") or (str(local_ffmpeg) if local_ffmpeg.is_file() else shutil.which("ffmpeg"))
-    for cmd in ("validar-orden", "comprobar-reel", "validar-orden-carrusel"):
+    p = sub.add_parser("historial-guiones", help="Consultar títulos, aperturas y motivos recientes de la misma cuenta")
+    p.add_argument("carpeta", type=Path)
+    for cmd in ("validar-guion", "validar-orden", "comprobar-reel", "validar-orden-carrusel"):
         p = sub.add_parser(cmd)
         p.add_argument("carpeta", type=Path)
         p.add_argument("--revision", type=int, required=True)
+        if cmd == "validar-guion":
+            p.add_argument("--hoja", action="store_true", help="Entregar la hoja legible rodaje-reel-NN.md al equipo")
         if cmd == "comprobar-reel":
             p.add_argument("--ffmpeg", default=ffmpeg)
     p = sub.add_parser("producir", help="Recoger el máster profesional y exportar las piezas gráficas")
@@ -220,6 +225,24 @@ def main():
     p.add_argument("--ffmpeg", default=ffmpeg)
     p.add_argument("--borrador", action="store_true", help="Montaje básico local en revision/, para ensayar la escaleta")
     args = parser.parse_args()
+    if args.cmd == "historial-guiones":
+        print(json.dumps(guion_rodaje.historial(args.carpeta), ensure_ascii=False, indent=2))
+        return
+    if args.cmd == "validar-guion":
+        if args.revision < 1:
+            raise ValueError("La revisión debe ser positiva.")
+        base = args.carpeta.resolve() / "guion"
+        guion = cargar(base / f"voz-reel-{args.revision:02}.json")
+        resumen = guion_rodaje.validar_turno(base.parent, guion)
+        if args.hoja:
+            destino = base / f"rodaje-reel-{args.revision:02}.md"
+            with tempfile.TemporaryDirectory(dir=base) as carpeta:
+                copia = Path(carpeta) / destino.name
+                copia.write_text(guion_rodaje.hoja(guion), encoding="utf-8")
+                os.replace(copia, destino)
+            resumen["hoja"] = str(destino)
+        print(json.dumps(resumen, ensure_ascii=False, indent=2))
+        return
     if args.cmd == "validar-orden-carrusel":
         checked = orden_carrusel(args.carpeta, args.revision)
         print(json.dumps(checked, ensure_ascii=False, indent=2, default=str))

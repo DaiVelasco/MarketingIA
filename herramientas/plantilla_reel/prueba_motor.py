@@ -34,14 +34,14 @@ def main():
         ff("-f","lavfi","-i","testsrc2=size=256x456:rate=30","-t",dur,"-c:v","libx264","-pix_fmt","yuv420p",fuente/"camara.mp4")
         ff("-f","lavfi","-i","color=c=green:s=128x64","-frames:v","1","-threads","1",fuente/"firma.png")
         ff("-f","lavfi","-i","anullsrc=r=48000:cl=stereo","-t",dur,"-c:a","pcm_s16le",pistas/"voz.wav")
-        ff("-f","lavfi","-i","sine=frequency=220:sample_rate=48000","-t",dur,"-ac","2",fuente/"ambiente.wav")
+        ff("-f","lavfi","-i","sine=frequency=220:sample_rate=48000","-t",dur,"-ac","2",fuente/"musica.wav")
         tinta=fuente/"tinta";tinta.mkdir()
         ff("-f","lavfi","-i","color=c=yellow@0.35:s=32x32,format=rgba","-frames:v","24","-threads","1","-start_number","0",tinta/"s%02d.png")
         frase={"id":"f1","texto":"Una forma cambia.","objetivo_visual":"Seguir una forma durante el cambio."}
         script=guion/"voz-reel-07.json"; escribir(script,{"frases":[frase]})
         rel_srt="edicion-07/subtitulos.srt"
         (camp/rel_srt).write_text("1\n00:00:00,100 --> 00:00:02,000\nUna forma cambia.\n",encoding="utf8")
-        config={"ambiente":"material/ambiente.wav","papel":"material/camara.mp4","tinta":"material/tinta"}
+        config={"musica":"material/musica.wav","papel":"material/camara.mp4","tinta":"material/tinta"}
         escribir(edit/"recursos.json",config)
         voz_hash=huella(pistas/"voz.wav"); guion_hash=huella(script)
         escribir(edit/"alineacion.json",{"guion_sha256":guion_hash,"voz_sha256":voz_hash,"fotogramas":72})
@@ -68,7 +68,7 @@ def main():
         if args.render:
             master=camp/"salida.mp4"
             subprocess.run([*base,"render",*opts,"--salida",master],check=True)
-            for name in ["imagen.mp4","voz.wav","ambiente.wav","subtitulos.srt"]:
+            for name in ["imagen.mp4","voz.wav","musica-efectos.wav","subtitulos.srt"]:
                 assert (pistas/name).stat().st_size>0
             # Un MP4 truncado o sin audio falla aunque exista en disco.
             ff("-xerror","-i",master,"-map","0:v:0","-map","0:a:0","-f","null","-")

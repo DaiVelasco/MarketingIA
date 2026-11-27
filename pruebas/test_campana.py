@@ -74,6 +74,11 @@ class Expediente(unittest.TestCase):
                 orden_montaje(folder, 1)
             del plan["cierre_referencia"]
             plan_file.write_text(json.dumps(plan), encoding="utf-8")
+            for sonido in ("Pixabay", "Openverse", "real-sfx", "earshot", "real-sound", "diseno-sonido"):
+                self.assertNotIn(sonido, orden_montaje(folder, 1)["asignacion"])
+                orders.append({**orders[0], "id": sonido, "herramienta": sonido})
+                plan_file.write_text(json.dumps(plan), encoding="utf-8")
+                self.assertEqual(orden_montaje(folder, 1)["asignacion"][sonido], [sonido])
             for plugin, skill in (("efectos-converzzo", "parallax-3d"), ("tipografia-converzzo", "gancho")):
                 self.assertNotIn(plugin, orden_montaje(folder, 1)["asignacion"])
                 orders.append({**orders[0], "id": plugin, "herramienta": plugin, "skill": skill})

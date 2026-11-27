@@ -7,12 +7,14 @@ import re
 import subprocess
 import unicodedata
 from urllib.parse import urlsplit
+from herramientas import guion_rodaje
 
 
 VIDEO = "Videos del proyecto - Reel de Instagram"
 HERRAMIENTAS = ("ElevenLabs", "Whisper", "invideo", "HyperFrames", "Remotion",
                 "gbro-collage-broll", "ClaudeAnimationBase")
 CONVERZZO = ("efectos-converzzo", "tipografia-converzzo")
+AUDIO_OPCIONAL = ("Pixabay", "Openverse", "real-sfx", "earshot", "real-sound", "diseno-sonido")
 PLUGINS = Path(__file__).resolve().parents[1] / "integraciones/converzzo/marketplace/plugins"
 TRASPASOS = ("investigacion", "analitica", "director", "contenidos", "editor_video", "revision")
 
@@ -54,7 +56,7 @@ def orden_montaje(folder, version):
                                             ("id", "herramienta", "instruccion", "insumo", "resultado")):
             raise ValueError("Cada orden necesita id, herramienta, instruccion, insumo y resultado.")
         key, tool = row["id"], row["herramienta"]
-        if key in ids or (tool not in HERRAMIENTAS and tool not in CONVERZZO):
+        if key in ids or tool not in (*HERRAMIENTAS, *CONVERZZO, *AUDIO_OPCIONAL):
             raise ValueError(f"Identificador repetido o herramienta desconocida en {key}.")
         if tool in CONVERZZO and "skill" in row:
             skill = row["skill"]
@@ -90,6 +92,8 @@ def orden_montaje(folder, version):
         result["cierre_referencia"] = plate
     contract = data.get("guion_voz")
     if contract is None:
+        if guion_rodaje.requiere_rodaje(folder):
+            raise ValueError("Falta guion_voz con el guion de rodaje de la jornada.")
         # Las entregas previas ya revisadas conservan el contrato con el que se aprobaron.
         receipt = folder / "revision" / f"edicion-reel-{version:02}.json"
         if not receipt.is_file() or cargar(receipt).get("orden_sha256") != digest:
@@ -133,7 +137,10 @@ def leer_subtitulos(path, duration):
 
 def validar_guion_voz(folder, version, duration, contract):
     script = folder / "guion" / f"voz-reel-{version:02}.json"
-    phrases = cargar(script).get("frases")
+    guion = cargar(script)
+    if "rodaje" in guion or guion_rodaje.requiere_rodaje(folder):
+        guion_rodaje.validar(guion)
+    phrases = guion.get("frases")
     if not isinstance(contract, dict) or not isinstance(phrases, list) or not phrases:
         raise ValueError("Se necesita un guion de voz con frases.")
     if sha256(script) != contract.get("guion_sha256"):
@@ -165,17 +172,26 @@ def validar_guion_voz(folder, version, duration, contract):
     shots = contract.get("tomas")
     if not isinstance(shots, list):
         raise ValueError("Falta la selección de tomas por frase.")
+    sin_voz = {i for i, escena in enumerate(guion.get("rodaje", {}).get("escenas", []), 1) if not escena["frases"]}
     covered = set()
     for shot in shots:
-        if not isinstance(shot, dict) or not texto(shot.get("frase")) or shot["frase"] not in targets or not texto(shot.get("motivo")):
-            raise ValueError("Cada toma debe explicar qué se ve y a qué frase responde.")
+        if not isinstance(shot, dict) or not texto(shot.get("motivo")):
+            raise ValueError("Cada toma debe explicar qué se ve y su motivo.")
+        frase, escena = shot.get("frase"), shot.get("escena")
+        ambiental = frase is None and type(escena) is int and escena in sin_voz
+        if not ambiental and (not texto(frase) or frase not in targets):
+            raise ValueError("Cada toma debe identificar su frase o una escena de rodaje sin locución.")
         local(folder, shot.get("archivo"))
         start, end, at, until = (shot.get(k) for k in ("desde", "hasta", "entrada", "salida"))
         if not all(map(numero, (start, end, at, until))) or not (0 <= start < end and 0 <= at < until <= duration + 0.001):
-            raise ValueError(f"Tiempos de toma inválidos en {shot['frase']}.")
-        first, last = spoken[shot["frase"]]
+            raise ValueError(f"Tiempos de toma inválidos en {frase or f'escena {escena}'}.")
+        if ambiental:
+            if any(at < fin and until > inicio for inicio, fin, _ in cues):
+                raise ValueError(f"La escena {escena} de sonido solo se solapa con la locución.")
+            continue
+        first, last = spoken[frase]
         if at < last and until > first:
-            covered.add(shot["frase"])
+            covered.add(frase)
     if covered != set(targets):
         raise ValueError("Faltan tomas durante la voz de " + ", ".join(sorted(targets.keys() - covered)) + ".")
     return sha256(srt)
@@ -254,7 +270,7 @@ def comprobar_placa(master, ffmpeg, plate):
 
 def comprobar_reproduccion(master, ffmpeg, duration, cierre_referencia=None):
     if not ffmpeg:
-        raise ValueError("Instala FFmpeg o configura KONDUCE_FFMPEG para verificar el máster.")
+        raise ValueError("Instala FFmpeg o configura MARKETINGIA_FFMPEG para verificar el máster.")
     result = subprocess.run([ffmpeg, "-nostdin", "-v", "error", "-xerror", "-progress", "pipe:1",
                              "-i", str(master), "-map", "0:v:0", "-map", "0:a:0", "-f", "null", "-"],
                             check=True, capture_output=True, text=True)

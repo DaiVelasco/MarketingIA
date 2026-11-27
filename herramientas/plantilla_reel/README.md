@@ -1,6 +1,6 @@
 # Plantilla de edición para un reel vertical
 
-El editor recibe un guion de voz aprobado, la locución de ElevenLabs y una orden de montaje que el director valida después de escucharla. El motor alinea palabras con Whisper, prepara los planos y exporta un MP4 de 1080 × 1920 a 30 fps. La carpeta `pistas` conserva la imagen muda y limpia, la voz, el ambiente y el SRT para editar o conformar en invideo.
+El editor recibe un guion de voz aprobado, la locución de ElevenLabs y una orden de montaje que el director valida después de escucharla. El motor alinea palabras con Whisper, prepara los planos y exporta un MP4 de 1080 × 1920 a 30 fps. La carpeta `pistas` conserva la imagen muda y limpia, la voz, el acompañamiento de música y efectos y el SRT para editar o conformar en invideo.
 
 ## Instalar en otra PC
 
@@ -38,7 +38,7 @@ campana/
     03 - Videos terminados/
 ```
 
-Cada frase lleva un identificador, el texto literal y lo que necesita mostrar la imagen. Puedes repartir una frase larga en varios cues con la clave `subtitulos`, una lista de fragmentos que juntos deben reproducir su texto.
+Para una jornada nueva de Konduce, prepara la [hoja de rodaje](../GUION.md) y ejecuta `python campana.py validar-guion CARPETA --revision N --hoja` antes de obtener la voz. El fragmento siguiente ilustra solo la lista de frases. Cada frase lleva un identificador, el texto literal y lo que necesita mostrar la imagen. Puedes repartir una frase larga en varios cues con la clave `subtitulos`, una lista de fragmentos que juntos deben reproducir su texto.
 
 ```json
 {"frases": [{"id": "f1", "texto": "Mira cómo cambia la forma.", "objetivo_visual": "Mostrar el instante del cambio."}]}
@@ -74,8 +74,10 @@ Guarda esta configuración en `edicion-01/recursos.json`. Las rutas de los insum
 
 ```json
 {
-  "ambiente": "Videos del proyecto - Reel de Instagram/01 - Videos crudos/ambiente.wav",
-  "ambiente_db": -5,
+  "musica": "edicion-01/fuentes/instrumental-alineada.wav",
+  "efectos": "edicion-01/fuentes/efectos-alineados.wav",
+  "musica_db": -3,
+  "efectos_db": 0,
   "voz_db": 0,
   "papel": "Videos del proyecto - Reel de Instagram/01 - Videos crudos/collage.mp4",
   "papel_desde": 0.5,
@@ -83,7 +85,9 @@ Guarda esta configuración en `edicion-01/recursos.json`. Las rutas de los insum
 }
 ```
 
-El ambiente es un registro con permiso para el uso previsto. El motor le añade un pulso musical suave generado localmente. `voz_db` controla la ganancia de A1 en la mezcla final. El WAV conserva la ganancia de origen para poder mezclar en invideo. Cuando la orden pide un inserto HyperFrames, entrega un clip animado de gbro-collage-broll con al menos 24 fotogramas desde `papel_desde`. Para el acento, exporta de ClaudeAnimationBase `s00.png` hasta `s23.png` en la carpeta de tinta. El director también puede montar un collage completo como toma de vídeo.
+Prepara las pistas de música y efectos sobre el reloj del reel, incluido el silencio desde el segundo cero hasta su primera entrada. Usa música propia o licenciada para la campaña y conserva los datos de procedencia. Ambas pistas son opcionales. Si el guion solo lleva voz, A2 queda en silencio. Las tres ganancias se expresan en dB y su valor predeterminado es 0. `voz_db` ajusta A1 en la mezcla final. Si una voz captada en cámara contiene ruido, límpiala antes de la alineación con Whisper. Al renderizar una configuración antigua, el motor omite `ambiente` y `ambiente_db`.
+
+Cuando la orden pide un inserto HyperFrames, entrega un clip animado de gbro-collage-broll con al menos 24 fotogramas desde `papel_desde`. Para el acento, exporta de ClaudeAnimationBase `s00.png` hasta `s23.png` en la carpeta de tinta. El director también puede montar un collage completo como toma de vídeo.
 
 ## 4. Renderizar y revisar
 
@@ -96,4 +100,4 @@ Los insertos quedan en `edicion-01/fuentes/hyperframes-NN/`, donde NN identifica
 
 El máster de publicación se guarda en `03 - Videos terminados/01 - Reel.mp4`. Para una comprobación adicional puedes dar al comando una ruta libre con `--salida`. Cuando la imagen y el audio decodifican correctamente, el motor entrega las pistas y escribe sus huellas en `edicion-01/entrega-local.json`. Un bloqueo por revisión permite que varios agentes trabajen en piezas distintas sin competir por los mismos archivos.
 
-El director monta `imagen.mp4` en V1, `voz.wav` en A1, `ambiente.wav` en A2 y `subtitulos.srt` como texto editable. Reproduce el máster y coteja los planos con las frases y con la marca. Registra el recibo del proyecto remoto y el dictamen sobre la huella exacta cuando se hayan verificado.
+El director monta `imagen.mp4` en V1, `voz.wav` en A1, `musica-efectos.wav` en A2 y `subtitulos.srt` como texto editable. Reproduce el máster, contrasta los planos con las frases y escucha las pausas para detectar ruido de cámara o de una secuencia heredada. Registra el recibo del proyecto remoto y el dictamen sobre la huella exacta cuando se hayan verificado.
